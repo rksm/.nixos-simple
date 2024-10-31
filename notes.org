@@ -1,3 +1,7 @@
 * misc
 ** TODO tryout emacs lsp booster
 https://github.com/blahgeek/emacs-lsp-booster
+
+
+
+sudo nixos-rebuild --flake .#default switch

@@ -1,11 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration_t430s.nix
-      <home-manager/nixos>
-    ];
+  imports = [ ./hardware-configuration_t430s.nix ];
 
   nix.settings.experimental-features = [ "flakes" "nix-command" ];
   system.stateVersion = "23.11";
@@ -38,36 +34,32 @@
   };
 
   services.xserver.enable = true;
-  services.xserver.displayManager.gdm.enable = true;
+  services.xserver.displayManager.lightdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
-  environment.gnome.excludePackages = (with pkgs; [
-      gnome-photos
-      gnome-tour
-    ]) ++ (with pkgs.gnome; [
-    cheese # webcam tool
-    gnome-music
-    gedit # text editor
-    epiphany # web browser
-    geary # email reader
-    gnome-characters
-    tali # poker game
-    iagno # go game
-    hitori # sudoku game
-    atomix # puzzle game
-    yelp # Help view
-    gnome-contacts
-    gnome-initial-setup
-  ]);
+  environment.gnome.excludePackages = (with pkgs; [ gnome-photos gnome-tour ])
+    ++ (with pkgs; [
+      cheese
+      epiphany
+      geary
+      yelp
+      gnome-music
+      gnome-characters
+      tali
+      iagno
+      hitori
+      atomix
+      gnome-contacts
+      gnome-initial-setup
+    ]);
   programs.dconf.enable = true;
 
   # Configure keymap in X11
-  services.xserver = {
+  services.xserver.xkb = {
+    variant = "";
     layout = "us";
-    xkbVariant = "";
   };
 
   # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -82,15 +74,15 @@
     isNormalUser = true;
     description = "user";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      firefox
-    ];
+    packages = with pkgs; [ firefox ];
   };
 
   # Enable automatic login for the user.
   security.sudo.wheelNeedsPassword = false;
-  services.xserver.displayManager.autoLogin.enable = true;
-  services.xserver.displayManager.autoLogin.user = "user";
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = "user";
+  };
 
   # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
   systemd.services."getty@tty1".enable = false;
@@ -102,12 +94,37 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-     wget
-     emacs
-     git
-     # gnome.gnome-tweaks
-     htop
-     btop
+    wget
+    wget
+    curl
+    emacs
+    git
+    git-lfs
+    git-filter-repo
+    htop
+    btop
+    iotop
+    iftop
+    nmap
+    killall
+    xclip # for xclip -selection clipboard
+
+    # low priority so that we can to use trace from elsewhere
+    (pkgs.lowPrio config.boot.kernelPackages.perf)
+    config.boot.kernelPackages.tmon # thermal monitoring
+    config.boot.kernelPackages.cpupower
+
+    # system call monitoring
+    strace # system call monitoring
+    ltrace # library call monitoring
+    lsof # list open files
+
+    ripgrep
+    fd
+
+    google-chrome
+
+    nixfmt
   ];
   programs._1password.enable = true;
   programs._1password-gui = {
@@ -116,43 +133,4 @@
   };
   programs.mtr.enable = true;
   # services.openssh.enable = true;
-
-  ### ------------------ ###
-
-  home-manager.users.user = { pkgs, lib, ... }: {
-    programs.bash.enable = true;
-
-    home.sessionVariables = {
-      EDITOR = "emacs";
-    };
-
-    # home.packages = [
-    #   pkgs.dconf-editor
-    # ];
-
-    programs.emacs = {
-      enable = true;
-      extraPackages = epkgs: [
-        epkgs.nix-mode
-        epkgs.magit
-      ];
-    };
-
-    dconf = {
-      enable = true;
-      settings = {
-        "org/gnome/desktop/interface".color-scheme = "prefer-dark";
-        "org/gnome/desktop/peripherals/keyboard" = {
-          numlock-state = true;
-          delay = lib.hm.gvariant.mkUint32 170;
-          repeat-interval = lib.hm.gvariant.mkUint32 17;
-	      };
-      };
-    };
-
-    # The state version is required and should stay at the version you
-    # originally installed.
-    home.stateVersion = "23.11";
-  };
-
 }
