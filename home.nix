@@ -19,6 +19,8 @@
         s
         nix-mode
         magit
+        adaptive-wrap
+        async-backup
       ];
   };
 
@@ -33,4 +35,7 @@
       };
     };
   };
+
+  home.file.".emacs.d/init.el".source =
+    config.lib.file.mkOutOfStoreSymlink /etc/nixos/.emacs.d/init.el;
 }

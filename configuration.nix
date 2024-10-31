@@ -125,6 +125,8 @@
     google-chrome
 
     nixfmt
+
+    shell-gpt
   ];
   programs._1password.enable = true;
   programs._1password-gui = {
